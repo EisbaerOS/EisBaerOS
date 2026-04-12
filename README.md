@@ -1,48 +1,48 @@
 # 🐻‍❄️ EisBärOS
 
-**EisBärOS** ist eine auf Arch Linux basierende Distribution mit KDE Plasma Desktop und einem eigenen grafischen Installer.
+**EisBärOS** is an Arch Linux-based distribution featuring the KDE Plasma Desktop and a custom graphical installer.
 
-Entwickelt von [AxolotlDevs.de](https://axolotldevs.de) · [eisbaeros.de](https://eisbaeros.de)
+Developed by [AxolotlDevs.de](https://axolotldevs.de) · [eisbaeros.de](https://eisbaeros.de)
 
 ## Features
 
-- 🖥️ **KDE Plasma Desktop** – Modern und anpassbar
-- 🧊 **Eigener grafischer Installer** – Ubuntu-ähnlicher Installationswizard (Electron-basiert)
-- 🔧 **Archinstall Backend** – Zuverlässige Systeminstallation
-- 🎨 **Eigenes Branding** – Wallpaper, Logos, Fastfetch-Konfiguration
-- 🔊 **PipeWire Audio** – Modernes Audio-System out-of-the-box
+- 🖥️ **KDE Plasma Desktop** – Modern and customizable
+- 🧊 **Custom Graphical Installer** – Ubuntu-like installation wizard (Electron-based)
+- 🔧 **Archinstall Backend** – Reliable system installation
+- 🎨 **Custom Branding** – Wallpapers, logos, Fastfetch configuration
+- 🔊 **PipeWire Audio** – Modern audio system out-of-the-box
 
-## ISO bauen
+## Building the ISO
 
-### Voraussetzungen
+### Prerequisites
 
-- Arch Linux (oder Arch-basierte Distribution)
-- `archiso` Paket installiert (`sudo pacman -S archiso`)
+- Arch Linux (or an Arch-based distribution)
+- `archiso` package installed (`sudo pacman -S archiso`)
 
-### Build starten
+### Start Build
 
 ```bash
 sudo ./build.sh
 ```
 
-Die fertige ISO findest du im `out/` Ordner.
+You can find the built ISO in the `out/` directory.
 
-## Projektstruktur
+## Project Structure
 
 ```
-├── build.sh                    # Build-Script
-├── EisBaerOS-Profile/          # Archiso-Profil
-│   ├── profiledef.sh           # Profil-Definition
-│   ├── packages.x86_64         # Paketliste
-│   ├── pacman.conf             # Pacman-Konfiguration
-│   └── airootfs/               # Root-Dateisystem
-│       ├── etc/                # System-Konfiguration
-│       ├── usr/local/bin/      # EisBärOS Scripts
+├── build.sh                    # Build script
+├── EisBaerOS-Profile/          # Archiso profile
+│   ├── profiledef.sh           # Profile definition
+│   ├── packages.x86_64         # Package list
+│   ├── pacman.conf             # Pacman configuration
+│   └── airootfs/               # Root filesystem
+│       ├── etc/                # System configuration
+│       ├── usr/local/bin/      # EisBärOS scripts
 │       └── usr/local/share/    # Installer (Electron)
 │           └── eisbaer-installer/
-└── LOGO/                       # Logo-Dateien
+└── LOGO/                       # Logo files
 ```
 
-## Lizenz
+## License
 
-GPL-3.0 – Siehe [LICENSE](LICENSE)
+Proprietary License – See [LICENSE](LICENSE) for details.
