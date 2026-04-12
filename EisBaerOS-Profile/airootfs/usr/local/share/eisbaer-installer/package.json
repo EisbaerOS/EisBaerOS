@@ -1,0 +1,9 @@
+{
+  "name": "eisbaeros-installer",
+  "version": "1.0.0",
+  "description": "EisBärOS GUI Installer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  }
+}

@@ -1,0 +1,7 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Exec=/usr/local/bin/eisbaeros-mode-monitor.sh
+Icon=dialog-information
+Name=EisBärOS Mode Monitor
+Type=Application
+X-KDE-Autostart-after=panel

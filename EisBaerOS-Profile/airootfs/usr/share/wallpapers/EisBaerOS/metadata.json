@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Id": "EisBaerOS",
+        "Name": "EisBärOS",
+        "Authors": [
+            {
+                "Name": "AxolotlDevs",
+                "Email": "info@axolotldevs.de"
+            }
+        ],
+        "Description": "Polar bears at sunset – the official EisBärOS wallpaper"
+    }
+}

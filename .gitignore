@@ -1,0 +1,21 @@
+# Build Output
+*.iso
+out/
+/tmp/archiso-tmp/
+
+# Upstream archiso (clone separately)
+archiso/
+
+# Python / Dev tools
+venv/
+__pycache__/
+*.pyc
+
+# Temporary / generated images
+Gemini_Generated_Image_*
+EISBÄR.jpg
+
+# OS files
+.DS_Store
+Thumbs.db
+*~

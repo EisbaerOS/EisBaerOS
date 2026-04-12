@@ -1,0 +1,41 @@
+{
+    "config_version": "2.8.2",
+    "bootloader": "grub-install",
+    "hostname": "EisBärOS",
+    "uki": false,
+    "timezone": "Europe/Berlin",
+    "ntp": true,
+    "kernel": [
+        "linux"
+    ],
+    "sys-language": "de_DE.UTF-8",
+    "sys-encoding": "UTF-8",
+    "keyboard-layout": "de-latin1-nodeadkeys",
+    "packages": [
+        "firefox",
+        "flatpak",
+        "discover",
+        "packagekit-qt6",
+        "kinfocenter",
+        "konsole",
+        "dolphin",
+        "virtualbox-guest-utils",
+        "fastfetch"
+    ],
+    "profile_config": {
+        "profile": {
+            "custom_settings": {
+                "KDE": true
+            },
+            "details": [
+                "desktop"
+            ]
+        }
+    },
+    "network_config": {
+        "type": "nm"
+    },
+    "audio_config": {
+        "audio": "pipewire"
+    }
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EisBärOS Installer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-pane">
+            <img src="logo.png" alt="EisBärOS">
+        </div>
+        
+        <div class="right-pane">
+            <div class="content-area">
+                
+                <!-- Step 1: Language & Timezone -->
+                <div id="step-1" class="step active">
+                    <h1>Welcome</h1>
+                    <p>Select your language and timezone to get started.</p>
+                    
+                    <label>Language</label>
+                    <div class="list-selection" id="langList">
+                        <div class="list-item" data-val="en_US.UTF-8">English</div>
+                        <div class="list-item" data-val="de_DE.UTF-8">Deutsch</div>
+                        <div class="list-item" data-val="fr_FR.UTF-8">Français</div>
+                        <div class="list-item" data-val="es_ES.UTF-8">Español</div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>Timezone</label>
+                        <input type="text" id="timezone" value="UTC" placeholder="e.g. Europe/Berlin">
+                    </div>
+                </div>
+
+                <!-- Step 2: Keyboard Layout -->
+                <div id="step-2" class="step">
+                    <h1>Keyboard layout</h1>
+                    <p>Choose your keyboard layout.</p>
+                    
+                    <div class="list-selection" id="kbList">
+                        <div class="list-item" data-val="us">English (US)</div>
+                        <div class="list-item" data-val="de">German</div>
+                        <div class="list-item" data-val="fr">French</div>
+                        <div class="list-item" data-val="es">Spanish</div>
+                        <div class="list-item" data-val="it">Italian</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: User Info -->
+                <div id="step-3" class="step">
+                    <h1>Who are you?</h1>
+                    
+                    <div class="form-group">
+                        <label>Your name</label>
+                        <input type="text" id="fullname" placeholder="Eisbaer User">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your computer's name</label>
+                        <input type="text" id="hostname" value="eisbaer-pc">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Pick a username</label>
+                        <input type="text" id="username" value="eisbaer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choose a password</label>
+                        <input type="password" id="password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Confirm your password</label>
+                        <input type="password" id="passwordConfirm">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="requirePassword" checked>
+                        <label for="requirePassword">Require my password to log in (and sudo)</label>
+                    </div>
+                </div>
+
+                <!-- Step 4: Network & Mirrors -->
+                <div id="step-4" class="step">
+                    <h1>Network Configuration</h1>
+                    <p>Configure how EisBärOS connects to the internet.</p>
+
+                    <div class="form-group">
+                        <label>Network Manager</label>
+                        <select id="networkSelect">
+                            <option value="nm">NetworkManager (Recommended)</option>
+                            <option value="systemd-networkd">systemd-networkd</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mirror Region</label>
+                        <input type="text" id="mirrorRegion" value="Germany" placeholder="e.g. Worldwide, Germany, US">
+                        <p style="font-size: 12px; margin-top: 5px;">Leave mostly defaults. Type Worldwide for global mirrors.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5: Software & Desktop -->
+                <div id="step-5" class="step">
+                    <h1>Software and Desktop</h1>
+                    <p>Choose what kind of system you want to install.</p>
+
+                    <label>Desktop Environment</label>
+                    <div class="list-selection" id="desktopList">
+                        <div class="list-item selected" data-val="kde">KDE Plasma (EisBärOS Standard)</div>
+                        <div class="list-item" data-val="gnome">GNOME Desktop</div>
+                        <div class="list-item" data-val="minimal">Minimal (No GUI / Server)</div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Audio Server</label>
+                        <select id="audioSelect">
+                            <option value="pipewire">Pipewire (Modern)</option>
+                            <option value="pulseaudio">PulseAudio (Legacy)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 6: Disk Setup -->
+                <div id="step-6" class="step">
+                    <h1>Installation type</h1>
+                    <p>This will erase all your files and install the operating system.</p>
+
+                    <div class="form-group">
+                        <label>Select Drive</label>
+                        <select id="diskSelect">
+                            <option value="">Loading drives...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Filesystem</label>
+                        <select id="fsSelect">
+                            <option value="ext4">ext4 (Standard, proven)</option>
+                            <option value="btrfs">btrfs (Modern, snapshots)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bootloader</label>
+                        <select id="bootSelect">
+                            <option value="Grub">GRUB (Universal)</option>
+                            <option value="Systemd-boot">systemd-boot (UEFI only)</option>
+                        </select>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="swapCheck" checked>
+                        <label for="swapCheck">Create Swap partition</label>
+                    </div>
+                </div>
+
+                <!-- Step 7: Summary -->
+                <div id="step-7" class="step">
+                    <h1>Ready to install</h1>
+                    <p>Please confirm your installation settings. You cannot undo this action.</p>
+
+                    <table class="summary-table" id="summaryTable">
+                        <!-- Populated by JS -->
+                    </table>
+                </div>
+
+                <!-- Step 8: Install Progress -->
+                <div id="step-8" class="step">
+                    <h1 id="installTitle">Installing system</h1>
+                    <p id="installDesc">Copying files. This may take a while...</p>
+                    
+                    <div id="progressAnim">
+                        <div class="loader"></div>
+                        <p style="color:var(--primary); font-weight:500;">Please wait, executing archinstall...</p>
+                    </div>
+                    
+                    <div class="terminal" id="terminalLog"></div>
+                </div>
+            </div>
+
+            <!-- Bottom Control Bar -->
+            <div class="bottom-bar">
+                <div class="btn-container">
+                    <button id="btnBack" class="btn" style="visibility: hidden;">Back</button>
+                </div>
+                
+                <div class="dots" id="dotsContainer">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button id="btnNext" class="btn btn-primary">Continue</button>
+                    <button id="btnReboot" class="btn btn-primary" style="display: none;">Restart Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

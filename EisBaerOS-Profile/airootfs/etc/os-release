@@ -1,0 +1,11 @@
+NAME="EisBärOS"
+PRETTY_NAME="EisBärOS"
+ID=eisbaeros
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;23;147;209"
+HOME_URL="https://eisbaeros.local/"
+DOCUMENTATION_URL="https://eisbaeros.local/"
+SUPPORT_URL="https://eisbaeros.local/"
+BUG_REPORT_URL="https://eisbaeros.local/"
+LOGO=eisbaeros-logo

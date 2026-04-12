@@ -1,0 +1,11 @@
+[Desktop Entry]
+GenericName=Terminal
+Name=Konsole (EisBärOS)
+Comment=Kommandozeile öffnen
+Exec=konsole
+Icon=/usr/share/pixmaps/eisbaeros.png
+Type=Application
+Categories=Qt;KDE;System;TerminalEmulator;
+StartupNotify=true
+X-DBUS-ServiceName=org.kde.konsole
+X-DBUS-StartupType=Unique

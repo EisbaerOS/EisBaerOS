@@ -1,0 +1,13 @@
+[Unit]
+Description=EisBärOS Live User Setup
+Before=sddm.service
+ConditionPathExists=!/var/lib/eisbaeros-liveuser-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/eisbaeros-liveuser-setup.sh
+ExecStartPost=/usr/bin/touch /var/lib/eisbaeros-liveuser-done
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
