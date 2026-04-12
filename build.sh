@@ -17,7 +17,7 @@ mkdir -p "$AIROOTFS/usr/bin"
 
 # Step 2: Clear old iso build artifacts
 mkdir -p ./out
-rm -rf /tmp/archiso-tmp
+rm -rf ./work
 
 # Step 2.5: Generate Live USB Version Info
 mkdir -p "$AIROOTFS/etc/eisbaeros"
@@ -30,7 +30,7 @@ EOF
 
 # Step 3: Build ISO
 echo "Starte mkarchiso..."
-mkarchiso -v -w /tmp/archiso-tmp -o ./out ./EisBaerOS-Profile
+mkarchiso -v -w ./work -o ./out ./EisBaerOS-Profile
 
 echo ""
 echo "Build abgeschlossen! Du findest die fertige ISO im Ordner 'out'."
