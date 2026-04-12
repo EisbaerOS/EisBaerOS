@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Set EisBärOS Wallpaper
+Exec=sh -c 'sleep 3; plasma-apply-wallpaperimage /usr/share/wallpapers/EisBaerOS/contents/images/3840x2160.png; rm -f ~/.config/autostart/eisbaeros-wallpaper.desktop'
+NoDisplay=true
+X-KDE-autostart-phase=2

@@ -68,14 +68,14 @@ EOF
     cp /usr/share/wallpapers/EisBaerOS/contents/images/3840x2160.png /mnt/usr/share/wallpapers/EisBaerOS/contents/images/3840x2160.png 2>/dev/null
 
     # 7. KDE Plasma-Konfiguration (Wallpaper als Standard) für neue User
-    mkdir -p /mnt/etc/skel/.config
-    cp /etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc /mnt/etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc 2>/dev/null
+    mkdir -p /mnt/etc/skel/.config/autostart
+    cp /etc/skel/.config/autostart/eisbaeros-wallpaper.desktop /mnt/etc/skel/.config/autostart/eisbaeros-wallpaper.desktop 2>/dev/null
 
     # Auch für bereits angelegte User (z.B. den installierten Haupt-User)
     for USER_HOME in /mnt/home/*/; do
         if [ -d "$USER_HOME" ]; then
-            mkdir -p "${USER_HOME}.config"
-            cp /etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc "${USER_HOME}.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null
+            mkdir -p "${USER_HOME}.config/autostart"
+            cp /etc/skel/.config/autostart/eisbaeros-wallpaper.desktop "${USER_HOME}.config/autostart/eisbaeros-wallpaper.desktop" 2>/dev/null
             USER_NAME=$(basename "$USER_HOME")
             arch-chroot /mnt chown -R "$USER_NAME:$USER_NAME" "/home/$USER_NAME/.config" 2>/dev/null
         fi
