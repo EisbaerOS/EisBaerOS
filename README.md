@@ -45,4 +45,4 @@ You can find the built ISO in the `out/` directory.
 
 ## License
 
-Proprietary License – See [LICENSE](LICENSE) for details.
+GPL-2.0 – See [LICENSE](LICENSE) for details.
