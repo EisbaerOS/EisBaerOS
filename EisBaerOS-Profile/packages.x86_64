@@ -15,7 +15,6 @@ cloud-init
 cryptsetup
 darkhttpd
 ddrescue
-dhcpcd
 dialog
 diffutils
 dmidecode
@@ -78,6 +77,7 @@ ndisc6
 nfs-utils
 nilfs-utils
 nmap
+networkmanager
 ntfs-3g
 nvme-cli
 open-iscsi
@@ -107,7 +107,6 @@ sof-firmware
 squashfs-tools
 sudo
 syslinux
-systemd-resolvconf
 tcpdump
 terminus-font
 testdisk

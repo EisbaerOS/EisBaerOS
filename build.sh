@@ -19,6 +19,15 @@ mkdir -p "$AIROOTFS/usr/bin"
 mkdir -p ./out
 rm -rf /tmp/archiso-tmp
 
+# Step 2.5: Generate Live USB Version Info
+mkdir -p "$AIROOTFS/etc/eisbaeros"
+cat <<EOF > "$AIROOTFS/etc/eisbaeros/live-version.json"
+{
+  "iso_id": "$(date +%Y-%m-%d-%H)",
+  "build_date": "$(date --iso-8601=seconds)"
+}
+EOF
+
 # Step 3: Build ISO
 echo "Starte mkarchiso..."
 mkarchiso -v -w /tmp/archiso-tmp -o ./out ./EisBaerOS-Profile

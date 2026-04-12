@@ -14,9 +14,39 @@
         
         <div class="right-pane">
             <div class="content-area">
-                
+                <!-- Step: Network Setup -->
+                <div id="step-network" class="step active">
+                    <h1>Checking Network</h1>
+                    <p id="networkStatus">Testing internet connection...</p>
+                    <div id="networkWifi" style="display: none; margin-top: 20px;">
+                        <label>Select a Wi-Fi Network</label>
+                        <select id="wifiOptions" class="form-group" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                            <option value="">Scanning...</option>
+                        </select>
+                        <input type="password" id="wifiPassword" placeholder="Wi-Fi Password (leave blank if none)" style="width: 100%; padding: 10px;">
+                        <button id="btnConnectWifi" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Connect</button>
+                        <p id="wifiError" style="color: #E95420; font-size: 14px; margin-top: 5px;"></p>
+                    </div>
+                </div>
+
+                <!-- Step: Updates -->
+                <div id="step-updates" class="step">
+                    <h1 style="color: #E95420;">Update Available</h1>
+                    <p>A newer version of the EisBärOS Live-USB is available. It is strongly recommended to use the latest version.</p>
+                    <div id="updatesList" style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 200px; overflow-y: auto;">
+                        <!-- JS injected -->
+                    </div>
+                    <div id="forcedUpdateWarning" style="display:none; margin-top: 20px; padding: 15px; background: rgba(233, 84, 32, 0.2); border-left: 4px solid #E95420;">
+                        <strong>CRITICAL:</strong> This update is forced. You may encounter installation failures or severe bugs if you proceed without reflashing your USB stick.
+                        <div style="margin-top: 10px;">
+                            <input type="checkbox" id="chkIgnoreForced">
+                            <label for="chkIgnoreForced" style="font-size: 12px;">I understand the risks and want to try installing anyway.</label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Step 1: Language & Timezone -->
-                <div id="step-1" class="step active">
+                <div id="step-1" class="step">
                     <h1>Welcome</h1>
                     <p>Select your language and timezone to get started.</p>
                     

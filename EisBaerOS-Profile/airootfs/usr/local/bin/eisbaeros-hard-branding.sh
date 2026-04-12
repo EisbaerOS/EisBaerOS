@@ -40,12 +40,20 @@ if [ -d /mnt/etc ]; then
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg 2>/dev/null
     fi
 
-    # 4. Fastfetch & Skel
+    # 4. Fastfetch, Skel & Versions
     mkdir -p /mnt/etc/skel/.config/fastfetch
     cp /etc/eisbaeros/fastfetch-config.jsonc /mnt/etc/skel/.config/fastfetch/config.jsonc
     mkdir -p /mnt/etc/eisbaeros
     cp /etc/eisbaeros/logo.txt /mnt/etc/eisbaeros/logo.txt
     cp /etc/eisbaeros/logo.png /mnt/etc/eisbaeros/logo.png 2>/dev/null
+    
+    cat <<EOF > /mnt/etc/eisbaeros/os-version.json
+{
+  "install_system": "EisBärOS",
+  "install_date": "$(date --iso-8601=seconds)"
+}
+EOF
+    
     echo 'fastfetch' >> /mnt/etc/skel/.bashrc
 
     # 5. Services aktivieren

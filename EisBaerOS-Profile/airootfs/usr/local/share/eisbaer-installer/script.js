@@ -1,4 +1,4 @@
-let currentStep = 1;
+let currentStep = 'network'; // 'network' -> 'updates' -> 1 to 8
 const totalSteps = 7; // Navigable Steps (8 is install)
 
 let uiState = {
@@ -37,9 +37,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnReboot').addEventListener('click', () => {
         window.installerAPI.rebootSystem();
     });
+    
+    document.getElementById('btnConnectWifi').addEventListener('click', async () => {
+        const ssid = document.getElementById('wifiOptions').value;
+        const pass = document.getElementById('wifiPassword').value;
+        if(!ssid) return;
+        
+        document.getElementById('btnConnectWifi').disabled = true;
+        document.getElementById('btnConnectWifi').textContent = "Connecting...";
+        const res = await window.installerAPI.connectWifi(ssid, pass);
+        if(res.success) {
+            checkNetworkFlow();
+        } else {
+            document.getElementById('wifiError').textContent = res.error || "Connection failed";
+            document.getElementById('btnConnectWifi').disabled = false;
+            document.getElementById('btnConnectWifi').textContent = "Connect";
+        }
+    });
 
     updateUI();
+    checkNetworkFlow();
 });
+
+let liveUpdatesData = null;
+
+async function checkNetworkFlow() {
+    document.getElementById('networkWifi').style.display = 'none';
+    document.getElementById('networkStatus').textContent = "Testing internet connection...";
+    const isOnline = await window.installerAPI.checkInternet();
+    
+    if (isOnline) {
+        // Run updates check
+        currentStep = 'updates';
+        updateUI();
+        await checkUpdatesFlow();
+    } else {
+        // Show Wi-Fi picker
+        document.getElementById('networkStatus').textContent = "You are offline. Please connect to Wi-Fi to fetch updates and packages.";
+        document.getElementById('networkWifi').style.display = 'block';
+        
+        const networks = await window.installerAPI.getWifiList();
+        const sel = document.getElementById('wifiOptions');
+        sel.innerHTML = '<option value="">Select a network</option>';
+        networks.forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n.ssid;
+            opt.text = `${n.ssid} (Signal: ${n.signal}%)`;
+            sel.appendChild(opt);
+        });
+    }
+}
+
+async function checkUpdatesFlow() {
+    document.getElementById('networkStatus').textContent = "Checking for Live-USB updates...";
+    const updates = await window.installerAPI.checkUpdates();
+    if (!updates || !updates.updates || updates.updates.length === 0) {
+        currentStep = 1;
+        updateUI();
+        return;
+    }
+    
+    const localVer = await window.installerAPI.getLocalVersion();
+    const currentId = localVer.iso_id; // e.g. "2026-04-12-15"
+    
+    let hasNewUpdates = false;
+    let hasForced = false;
+    let html = '';
+    
+    updates.updates.forEach(u => {
+        // If the update ID string comparison says the remote is newer
+        if (u.id > currentId) {
+            hasNewUpdates = true;
+            if (u.state === 'forced') hasForced = true;
+            html += `<div style="margin-bottom:10px;"><strong>${u.title} (${u.version})</strong> - ${u.state === 'forced' ? '<span style="color:red;">CRITICAL</span>' : 'Optional'}<br><ul style="margin:5px 0 0 20px;">`;
+            u.changelog.forEach(log => {
+                html += `<li>${log}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+    });
+    
+    if (hasNewUpdates) {
+        liveUpdatesData = { hasForced };
+        document.getElementById('updatesList').innerHTML = html;
+        if (hasForced) {
+            document.getElementById('forcedUpdateWarning').style.display = 'block';
+        }
+        updateUI(); // refresh buttons state
+    } else {
+        currentStep = 1;
+        updateUI();
+    }
+}
 
 function setupListSelection(containerId, callback) {
     const container = document.getElementById(containerId);
@@ -54,17 +143,26 @@ function setupListSelection(containerId, callback) {
 }
 
 function updateUI() {
-    // Content mapping
+    // Hide all steps
+    document.getElementById('step-network').classList.remove('active');
+    document.getElementById('step-updates').classList.remove('active');
     for (let i = 1; i <= 8; i++) {
         const stepEl = document.getElementById(`step-${i}`);
         if(stepEl) stepEl.classList.remove('active');
     }
-    document.getElementById(`step-${currentStep}`).classList.add('active');
+    
+    if (currentStep === 'network') {
+        document.getElementById('step-network').classList.add('active');
+    } else if (currentStep === 'updates') {
+        document.getElementById('step-updates').classList.add('active');
+    } else {
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+    }
 
     // Dots mapping
     const dots = document.querySelectorAll('.dot');
     dots.forEach((dot, index) => {
-        if (index < currentStep) dot.classList.add('active');
+        if (typeof currentStep === 'number' && index < currentStep) dot.classList.add('active');
         else dot.classList.remove('active');
     });
 
@@ -72,10 +170,28 @@ function updateUI() {
     const btnBack = document.getElementById('btnBack');
     const btnNext = document.getElementById('btnNext');
 
-    if (currentStep === 1) {
+    if (currentStep === 'network') {
         btnBack.style.visibility = 'hidden';
-    } else if (currentStep <= totalSteps) {
+        btnNext.style.display = 'none'; // Controlled by network flow
+    } else if (currentStep === 'updates') {
+        btnBack.style.visibility = 'hidden';
+        btnNext.style.display = 'block';
+        
+        if (liveUpdatesData && liveUpdatesData.hasForced) {
+            const chk = document.getElementById('chkIgnoreForced');
+            btnNext.disabled = !chk.checked;
+            chk.onchange = () => { btnNext.disabled = !chk.checked; };
+        } else {
+            btnNext.disabled = false;
+        }
+    } else if (currentStep === 1) {
+        btnNext.style.display = 'block';
+        btnBack.style.visibility = 'hidden';
+        btnNext.disabled = false;
+    } else if (typeof currentStep === 'number' && currentStep <= totalSteps) {
+        btnNext.style.display = 'block';
         btnBack.style.visibility = 'visible';
+        btnNext.disabled = false;
     }
 
     if (currentStep === totalSteps) {
@@ -123,7 +239,13 @@ async function nextStep() {
         }
     }
 
-    if (currentStep < totalSteps) {
+    if (currentStep === 'updates') {
+        currentStep = 1;
+        updateUI();
+        return;
+    }
+
+    if (currentStep < totalSteps && typeof currentStep === 'number') {
         currentStep++;
         updateUI();
     } else if (currentStep === totalSteps) {
