@@ -141,6 +141,11 @@ ipcMain.handle('start-install', async (event, config, diskLayout) => {
 
     // Using pkexec to elevate privileges, clean pacman.conf, init keyring, sync mirrors, then run archinstall
     const command = [
+        "echo '--- EisBärOS Installer Debug ---'",
+        "echo 'Main Config:'",
+        `cat ${configPath}`,
+        ...(diskLayout ? ["echo 'Disk Layout:'", `cat ${diskPath}`] : []),
+        "echo '--------------------------------'",
         // Remove any non-official repos (e.g. endeavouros) from pacman.conf to prevent mirror failures
         "sed -i '/^# EndeavourOS/,$d' /etc/pacman.conf",
         "sed -i '/^\\[endeavouros\\]/,$d' /etc/pacman.conf",
@@ -150,7 +155,7 @@ ipcMain.handle('start-install', async (event, config, diskLayout) => {
         'pacman-key --init',
         'pacman-key --populate archlinux',
         'pacman -Syy --noconfirm archlinux-keyring',
-        `archinstall --config ${configPath} ${diskLayout ? '--disk_layouts ' + diskPath : ''} --silent`
+        `archinstall --config ${configPath} ${diskLayout ? '--disk_layouts ' + diskPath : ''} --debug --silent`
     ].join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);
 

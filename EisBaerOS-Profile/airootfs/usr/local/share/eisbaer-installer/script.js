@@ -300,7 +300,7 @@ function startInstallation() {
                 "password": document.getElementById('password').value,
                 "is_sudo": true
             }
-        ]
+        ],
     };
 
     const diskLayout = {
