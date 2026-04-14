@@ -131,9 +131,13 @@ ipcMain.handle('get-disks', async () => {
 });
 
 // IPC: Start Install
-ipcMain.handle('start-install', async (event, config) => {
+ipcMain.handle('start-install', async (event, config, diskLayout) => {
     const configPath = '/tmp/eisbaer_config.json';
+    const diskPath = '/tmp/eisbaer_disk.json';
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    if (diskLayout) {
+        fs.writeFileSync(diskPath, JSON.stringify(diskLayout, null, 2));
+    }
 
     // Using pkexec to elevate privileges, clean pacman.conf, init keyring, sync mirrors, then run archinstall
     const command = [
@@ -146,7 +150,7 @@ ipcMain.handle('start-install', async (event, config) => {
         'pacman-key --init',
         'pacman-key --populate archlinux',
         'pacman -Syy --noconfirm archlinux-keyring',
-        `archinstall --config ${configPath} --silent`
+        `archinstall --config ${configPath} ${diskLayout ? '--disk_layouts ' + diskPath : ''} --silent`
     ].join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);
 

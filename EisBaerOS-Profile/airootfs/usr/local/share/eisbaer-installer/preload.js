@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('installerAPI', {
     getDisks: () => ipcRenderer.invoke('get-disks'),
-    startInstall: (config) => ipcRenderer.invoke('start-install', config),
+    startInstall: (config, diskLayout) => ipcRenderer.invoke('start-install', config, diskLayout),
     checkInternet: () => ipcRenderer.invoke('check-internet'),
     getWifiList: () => ipcRenderer.invoke('get-wifi-list'),
     connectWifi: (ssid, password) => ipcRenderer.invoke('connect-wifi', ssid, password),

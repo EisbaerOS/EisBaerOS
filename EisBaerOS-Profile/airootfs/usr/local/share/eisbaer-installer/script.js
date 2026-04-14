@@ -300,29 +300,30 @@ function startInstallation() {
                 "password": document.getElementById('password').value,
                 "is_sudo": true
             }
-        ],
-        "disk_layouts": {
-            [document.getElementById('diskSelect').value]: {
-                "device": document.getElementById('diskSelect').value,
-                "wipe": true,
-                "partitions": [
-                    {
-                        "mountpoint": "/boot",
-                        "fs_type": "fat32",
-                        "size": { "unit": "MiB", "value": 512 },
-                        "status": "create",
-                        "type": "primary",
-                        "flags": ["boot"]
-                    },
-                    {
-                        "mountpoint": "/",
-                        "fs_type": fsType,
-                        "size": { "unit": "Percent", "value": 100 },
-                        "status": "create",
-                        "type": "primary"
-                    }
-                ]
-            }
+        ]
+    };
+
+    const diskLayout = {
+        [document.getElementById('diskSelect').value]: {
+            "device": document.getElementById('diskSelect').value,
+            "wipe": true,
+            "partitions": [
+                {
+                    "mountpoint": "/boot",
+                    "fs_type": "fat32",
+                    "size": { "unit": "MiB", "value": 512 },
+                    "status": "create",
+                    "type": "primary",
+                    "flags": ["boot"]
+                },
+                {
+                    "mountpoint": "/",
+                    "fs_type": fsType,
+                    "size": { "unit": "Percent", "value": 100 },
+                    "status": "create",
+                    "type": "primary"
+                }
+            ]
         }
     };
 
@@ -351,5 +352,5 @@ function startInstallation() {
         }
     });
 
-    window.installerAPI.startInstall(config);
+    window.installerAPI.startInstall(config, diskLayout);
 }

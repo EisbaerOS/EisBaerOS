@@ -1,0 +1,72 @@
+{
+    "bootloader": "systemd-bootctl",
+    "hostname": "eisbaer-pc",
+    "timezone": "UTC",
+    "audio": "pipewire",
+    "kernels": [
+        "linux"
+    ],
+    "packages": [
+        "firefox",
+        "flatpak"
+    ],
+    "mirror_config": {
+        "mirror_regions": {
+            "Germany": []
+        }
+    },
+    "network_config": {
+        "type": "NetworkManager"
+    },
+    "profile_config": {
+        "profile": {
+            "type": "desktop",
+            "custom_settings": {
+                "desktop_environment": "kde"
+            }
+        }
+    },
+    "locale_config": {
+        "kb_layout": "us",
+        "sys_enc": "UTF-8",
+        "sys_lang": "en_US"
+    },
+    "users": [
+        {
+            "username": "eisbaer",
+            "password": "password",
+            "is_sudo": true
+        }
+    ],
+    "disk_layouts": {
+        "/dev/sda": {
+            "device": "/dev/sda",
+            "wipe": true,
+            "partitions": [
+                {
+                    "mountpoint": "/boot",
+                    "fs_type": "fat32",
+                    "size": {
+                        "unit": "MiB",
+                        "value": 512
+                    },
+                    "status": "create",
+                    "type": "primary",
+                    "flags": [
+                        "boot"
+                    ]
+                },
+                {
+                    "mountpoint": "/",
+                    "fs_type": "ext4",
+                    "size": {
+                        "unit": "Percent",
+                        "value": 100
+                    },
+                    "status": "create",
+                    "type": "primary"
+                }
+            ]
+        }
+    }
+}
