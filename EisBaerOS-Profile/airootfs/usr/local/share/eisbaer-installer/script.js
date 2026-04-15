@@ -261,6 +261,13 @@ function prevStep() {
 }
 
 function startInstallation() {
+    // Validate disk selection
+    const selectedDisk = document.getElementById('diskSelect').value;
+    if (!selectedDisk) {
+        alert("Please select a target disk before installing.");
+        return;
+    }
+
     currentStep = 8;
     updateUI();
     
@@ -304,8 +311,8 @@ function startInstallation() {
     };
 
     const diskLayout = {
-        [document.getElementById('diskSelect').value]: {
-            "device": document.getElementById('diskSelect').value,
+        [selectedDisk]: {
+            "device": selectedDisk,
             "wipe": true,
             "partitions": [
                 {
