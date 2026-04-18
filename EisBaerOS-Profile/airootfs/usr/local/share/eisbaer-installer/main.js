@@ -131,33 +131,118 @@ ipcMain.handle('get-disks', async () => {
 });
 
 // IPC: Start Install
-ipcMain.handle('start-install', async (event, config, diskLayout) => {
+ipcMain.handle('start-install', async (event, config) => {
     const configPath = '/tmp/eisbaer_config.json';
+    const mountpoint = '/mnt/archinstall';
+
+    // Extract disk info from config and remove it (we handle partitioning ourselves)
+    const diskDevice = config._disk_device;
+    const fsType = config._fs_type || 'ext4';
+    const wantSwap = config._swap || false;
+    const encPassword = config._enc_password || '';
     
-    // Merge disk layout into config if present
-    if (diskLayout) {
-        config = { ...config, disk_layouts: diskLayout };
-    }
-    
+    // Remove our internal fields before passing to archinstall
+    delete config._disk_device;
+    delete config._fs_type;
+    delete config._swap;
+    delete config._enc_password;
+
+    // Set disk_config to pre_mounted_config pointing to our mountpoint
+    config.disk_config = {
+        "config_type": "pre_mounted_config",
+        "mountpoint": mountpoint
+    };
+
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-    // Using pkexec to elevate privileges, clean pacman.conf, init keyring, sync mirrors, then run archinstall
-    const command = [
-        "echo '--- EisBärOS Installer Debug ---'",
-        "echo 'Main Config:'",
-        `cat ${configPath}`,
-        "echo '--------------------------------'",
-        // Remove any non-official repos (e.g. endeavouros) from pacman.conf to prevent mirror failures
-        "sed -i '/^# EndeavourOS/,$d' /etc/pacman.conf",
-        "sed -i '/^\\[endeavouros\\]/,$d' /etc/pacman.conf",
-        // Remove stale sync DBs for removed repos
-        "rm -f /var/lib/pacman/sync/endeavouros.*",
-        // Init keyring and sync
-        'pacman-key --init',
-        'pacman-key --populate archlinux',
-        'pacman -Syy --noconfirm archlinux-keyring',
-        `archinstall --config ${configPath} --debug --silent --skip-ntp`
-    ].join(' && ');
+    // Build partition + mount commands
+    // We partition with sgdisk, format with mkfs, mount, then call archinstall
+    const partCmds = [];
+    
+    partCmds.push(`echo '=== EisBärOS Installer ==='`);
+    partCmds.push(`echo 'Config JSON:'`);
+    partCmds.push(`cat ${configPath}`);
+    partCmds.push(`echo '========================='`);
+    
+    // Clean pacman.conf
+    partCmds.push("sed -i '/^# EndeavourOS/,$d' /etc/pacman.conf");
+    partCmds.push("sed -i '/^\\[endeavouros\\]/,$d' /etc/pacman.conf");
+    partCmds.push("rm -f /var/lib/pacman/sync/endeavouros.*");
+    
+    // Init keyring
+    partCmds.push('pacman-key --init');
+    partCmds.push('pacman-key --populate archlinux');
+    partCmds.push('pacman -Syy --noconfirm archlinux-keyring');
+    
+    // Unmount anything on the target first
+    partCmds.push(`umount -R ${mountpoint} 2>/dev/null || true`);
+    partCmds.push(`swapoff ${diskDevice}* 2>/dev/null || true`);
+    
+    // Wipe and create GPT partition table
+    partCmds.push(`echo 'Wiping ${diskDevice}...'`);
+    partCmds.push(`sgdisk --zap-all ${diskDevice}`);
+    
+    // Create partitions
+    // Partition 1: EFI System Partition (512MB)
+    partCmds.push(`sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI" ${diskDevice}`);
+    
+    let rootPartNum = 2;
+    if (wantSwap) {
+        // Partition 2: Swap (4GB)
+        partCmds.push(`sgdisk -n 2:0:+4G -t 2:8200 -c 2:"Swap" ${diskDevice}`);
+        rootPartNum = 3;
+    }
+    
+    // Partition 2/3: Root (rest of disk)
+    partCmds.push(`sgdisk -n ${rootPartNum}:0:0 -t ${rootPartNum}:8300 -c ${rootPartNum}:"Root" ${diskDevice}`);
+    
+    // Inform kernel of partition changes
+    partCmds.push(`partprobe ${diskDevice}`);
+    partCmds.push(`sleep 2`);
+    
+    // Determine partition device names (handle both /dev/sdaX and /dev/nvme0n1pX naming)
+    partCmds.push(`if [[ "${diskDevice}" == *nvme* ]] || [[ "${diskDevice}" == *mmcblk* ]]; then SEP="p"; else SEP=""; fi`);
+    
+    const espPart = '${' + diskDevice.replace('/dev/', '') + '}';
+    // Use shell variable expansion for partition names
+    partCmds.push(`ESP_PART="${diskDevice}\${SEP}1"`);
+    if (wantSwap) {
+        partCmds.push(`SWAP_PART="${diskDevice}\${SEP}2"`);
+    }
+    partCmds.push(`ROOT_PART="${diskDevice}\${SEP}${rootPartNum}"`);
+    
+    // Format partitions
+    partCmds.push(`echo 'Formatting partitions...'`);
+    partCmds.push(`mkfs.fat -F 32 $ESP_PART`);
+    
+    if (wantSwap) {
+        partCmds.push(`mkswap $SWAP_PART`);
+        partCmds.push(`swapon $SWAP_PART`);
+    }
+    
+    if (encPassword) {
+        // LUKS encryption for root
+        partCmds.push(`echo '${encPassword}' | cryptsetup luksFormat $ROOT_PART --batch-mode`);
+        partCmds.push(`echo '${encPassword}' | cryptsetup open $ROOT_PART cryptroot`);
+        partCmds.push(`mkfs.${fsType} /dev/mapper/cryptroot`);
+        partCmds.push(`mkdir -p ${mountpoint}`);
+        partCmds.push(`mount /dev/mapper/cryptroot ${mountpoint}`);
+    } else {
+        partCmds.push(`mkfs.${fsType} $ROOT_PART`);
+        partCmds.push(`mkdir -p ${mountpoint}`);
+        partCmds.push(`mount $ROOT_PART ${mountpoint}`);
+    }
+    
+    // Mount ESP
+    partCmds.push(`mkdir -p ${mountpoint}/boot`);
+    partCmds.push(`mount $ESP_PART ${mountpoint}/boot`);
+    
+    partCmds.push(`echo 'Partitioning complete. Starting archinstall...'`);
+    
+    // Run archinstall with pre_mounted_config
+    partCmds.push(`archinstall --config ${configPath} --mountpoint ${mountpoint} --debug --silent`);
+
+    const command = partCmds.join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);
 
     installProcess.stdout.on('data', (data) => {

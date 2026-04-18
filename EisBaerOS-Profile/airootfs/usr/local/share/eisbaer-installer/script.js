@@ -296,6 +296,13 @@ function startInstallation() {
     }
 
     const config = {
+        // Internal fields for main.js to handle partitioning (removed before passing to archinstall)
+        "_disk_device": selectedDisk,
+        "_fs_type": fsType,
+        "_swap": document.getElementById('swapCheck').checked,
+        "_enc_password": document.getElementById('diskEncryption').value || '',
+        
+        // Archinstall config fields
         "bootloader": document.getElementById('bootSelect').value,
         "hostname": document.getElementById('hostname').value || 'eisbaer-pc',
         "timezone": document.getElementById('timezone').value || 'UTC',
@@ -325,54 +332,8 @@ function startInstallation() {
     };
     
     if (rootPwd) {
-        config["root_password"] = rootPwd;
+        config["!root-password"] = rootPwd;
     }
-
-    const encPwd = document.getElementById('diskEncryption').value;
-    if (encPwd) {
-        config["disk_encryption"] = {
-            "encryption_type": "luks",
-            "encryption_password": encPwd,
-            "partitions": ["/"]
-        };
-    }
-
-    const partitions = [
-        {
-            "mountpoint": "/boot",
-            "fs_type": "fat32",
-            "size": "512MiB",
-            "status": "create",
-            "type": "primary",
-            "flags": ["boot", "esp"]
-        }
-    ];
-
-    if (document.getElementById('swapCheck').checked) {
-        partitions.push({
-            "mountpoint": null,
-            "fs_type": "linux-swap",
-            "size": "4GiB",
-            "status": "create",
-            "type": "primary"
-        });
-    }
-
-    partitions.push({
-        "mountpoint": "/",
-        "fs_type": fsType,
-        "size": "100%",
-        "status": "create",
-        "type": "primary"
-    });
-
-    const diskLayout = {
-        [selectedDisk]: {
-            "device": selectedDisk,
-            "wipe": true,
-            "partitions": partitions
-        }
-    };
 
     window.installerAPI.onInstallLog((log) => {
         term.textContent += log;
@@ -399,5 +360,6 @@ function startInstallation() {
         }
     });
 
-    window.installerAPI.startInstall(config, diskLayout);
+    // Pass config only – disk_config is embedded inside
+    window.installerAPI.startInstall(config);
 }
