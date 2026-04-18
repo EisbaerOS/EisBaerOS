@@ -159,45 +159,49 @@ ipcMain.handle('start-install', async (event, config) => {
     // We partition with sgdisk, format with mkfs, mount, then call archinstall
     const partCmds = [];
     
-    partCmds.push(`echo '=== EisBärOS Installer ==='`);
-    partCmds.push(`echo 'Config JSON:'`);
-    partCmds.push(`cat ${configPath}`);
-    partCmds.push(`echo '========================='`);
+    partCmds.push(`echo ''`);
+    partCmds.push(`echo '══════════════════════════════════════════════'`);
+    partCmds.push(`echo '   EisBärOS Installer'`);
+    partCmds.push(`echo '══════════════════════════════════════════════'`);
+    partCmds.push(`echo ''`);
     
-    // Clean pacman.conf
-    partCmds.push("sed -i '/^# EndeavourOS/,$d' /etc/pacman.conf");
-    partCmds.push("sed -i '/^\\[endeavouros\\]/,$d' /etc/pacman.conf");
-    partCmds.push("rm -f /var/lib/pacman/sync/endeavouros.*");
+    // Clean pacman.conf (silent)
+    partCmds.push("sed -i '/^# EndeavourOS/,$d' /etc/pacman.conf 2>/dev/null || true");
+    partCmds.push("sed -i '/^\\[endeavouros\\]/,$d' /etc/pacman.conf 2>/dev/null || true");
+    partCmds.push("rm -f /var/lib/pacman/sync/endeavouros.* 2>/dev/null || true");
     
     // Init keyring
-    partCmds.push('pacman-key --init');
-    partCmds.push('pacman-key --populate archlinux');
-    partCmds.push('pacman -Syy --noconfirm archlinux-keyring');
+    partCmds.push(`echo '▶ Step 1/4: Preparing package keyring...'`);
+    partCmds.push('pacman-key --init 2>&1 | tail -1');
+    partCmds.push('pacman-key --populate archlinux 2>&1 | tail -1');
+    partCmds.push('pacman -Syy --noconfirm --noprogressbar archlinux-keyring > /dev/null 2>&1');
+    partCmds.push(`echo '  ✓ Keyring ready'`);
     
-    // Unmount anything on the target first
+    // Unmount anything on the target first (silent)
     partCmds.push(`umount -R ${mountpoint} 2>/dev/null || true`);
     partCmds.push(`swapoff ${diskDevice}* 2>/dev/null || true`);
     
     // Wipe and create GPT partition table
-    partCmds.push(`echo 'Wiping ${diskDevice}...'`);
-    partCmds.push(`sgdisk --zap-all ${diskDevice}`);
+    partCmds.push(`echo ''`);
+    partCmds.push(`echo '▶ Step 2/4: Partitioning ${diskDevice}...'`);
+    partCmds.push(`sgdisk --zap-all ${diskDevice} > /dev/null 2>&1`);
     
-    // Create partitions
-    // Partition 1: EFI System Partition (512MB)
-    partCmds.push(`sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI" ${diskDevice}`);
+    // Create partitions (suppress sgdisk chatter)
+    partCmds.push(`sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI" ${diskDevice} > /dev/null 2>&1`);
+    partCmds.push(`echo '  ✓ EFI partition (512 MB)'`);
     
     let rootPartNum = 2;
     if (wantSwap) {
-        // Partition 2: Swap (4GB)
-        partCmds.push(`sgdisk -n 2:0:+4G -t 2:8200 -c 2:"Swap" ${diskDevice}`);
+        partCmds.push(`sgdisk -n 2:0:+4G -t 2:8200 -c 2:"Swap" ${diskDevice} > /dev/null 2>&1`);
+        partCmds.push(`echo '  ✓ Swap partition (4 GB)'`);
         rootPartNum = 3;
     }
     
-    // Partition 2/3: Root (rest of disk)
-    partCmds.push(`sgdisk -n ${rootPartNum}:0:0 -t ${rootPartNum}:8300 -c ${rootPartNum}:"Root" ${diskDevice}`);
+    partCmds.push(`sgdisk -n ${rootPartNum}:0:0 -t ${rootPartNum}:8300 -c ${rootPartNum}:"Root" ${diskDevice} > /dev/null 2>&1`);
+    partCmds.push(`echo '  ✓ Root partition (${fsType})'`);
     
-    // Inform kernel of partition changes
-    partCmds.push(`partprobe ${diskDevice}`);
+    // Inform kernel of partition changes (silent)
+    partCmds.push(`partprobe ${diskDevice} 2>/dev/null || true`);
     partCmds.push(`sleep 2`);
     
     // Determine partition device names (handle both /dev/sdaX and /dev/nvme0n1pX naming)
@@ -212,23 +216,28 @@ ipcMain.handle('start-install', async (event, config) => {
     partCmds.push(`ROOT_PART="${diskDevice}\${SEP}${rootPartNum}"`);
     
     // Format partitions
-    partCmds.push(`echo 'Formatting partitions...'`);
-    partCmds.push(`mkfs.fat -F 32 $ESP_PART`);
+    partCmds.push(`echo ''`);
+    partCmds.push(`echo '▶ Step 3/4: Formatting partitions...'`);
+    partCmds.push(`mkfs.fat -F 32 $ESP_PART > /dev/null 2>&1`);
+    partCmds.push(`echo '  ✓ /boot formatted (FAT32)'`);
     
     if (wantSwap) {
-        partCmds.push(`mkswap $SWAP_PART`);
-        partCmds.push(`swapon $SWAP_PART`);
+        partCmds.push(`mkswap $SWAP_PART > /dev/null 2>&1`);
+        partCmds.push(`swapon $SWAP_PART 2>/dev/null || true`);
+        partCmds.push(`echo '  ✓ Swap enabled'`);
     }
     
     if (encPassword) {
-        // LUKS encryption for root
-        partCmds.push(`echo '${encPassword}' | cryptsetup luksFormat $ROOT_PART --batch-mode`);
+        partCmds.push(`echo '  Encrypting root partition...'`);
+        partCmds.push(`echo '${encPassword}' | cryptsetup luksFormat $ROOT_PART --batch-mode 2>&1 | tail -1`);
         partCmds.push(`echo '${encPassword}' | cryptsetup open $ROOT_PART cryptroot`);
-        partCmds.push(`mkfs.${fsType} /dev/mapper/cryptroot`);
+        partCmds.push(`mkfs.${fsType} /dev/mapper/cryptroot > /dev/null 2>&1`);
+        partCmds.push(`echo '  ✓ Root encrypted and formatted (${fsType})'`);
         partCmds.push(`mkdir -p ${mountpoint}`);
         partCmds.push(`mount /dev/mapper/cryptroot ${mountpoint}`);
     } else {
-        partCmds.push(`mkfs.${fsType} $ROOT_PART`);
+        partCmds.push(`mkfs.${fsType} $ROOT_PART > /dev/null 2>&1`);
+        partCmds.push(`echo '  ✓ Root formatted (${fsType})'`);
         partCmds.push(`mkdir -p ${mountpoint}`);
         partCmds.push(`mount $ROOT_PART ${mountpoint}`);
     }
@@ -236,8 +245,12 @@ ipcMain.handle('start-install', async (event, config) => {
     // Mount ESP
     partCmds.push(`mkdir -p ${mountpoint}/boot`);
     partCmds.push(`mount $ESP_PART ${mountpoint}/boot`);
+    partCmds.push(`echo '  ✓ All partitions mounted'`);
     
-    partCmds.push(`echo 'Partitioning complete. Starting archinstall...'`);
+    partCmds.push(`echo ''`);
+    partCmds.push(`echo '▶ Step 4/4: Installing EisBärOS...'`);
+    partCmds.push(`echo '  This may take 5-15 minutes depending on your internet speed.'`);
+    partCmds.push(`echo ''`);
     
     // Run archinstall with pre_mounted_config
     partCmds.push(`archinstall --config ${configPath} --mountpoint ${mountpoint} --debug --silent`);

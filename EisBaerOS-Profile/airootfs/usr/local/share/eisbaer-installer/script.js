@@ -336,8 +336,23 @@ function startInstallation() {
     }
 
     window.installerAPI.onInstallLog((log) => {
-        term.textContent += log;
-        term.scrollTop = term.scrollHeight; // Auto-scroll
+        // Filter out noisy pacman progress bars and download noise
+        const lines = log.split('\n');
+        for (const line of lines) {
+            const trimmed = line.replace(/\r/g, '').trim();
+            if (!trimmed) continue;
+            
+            // Skip pacman download progress bars and percentage lines
+            if (trimmed.match(/^\s*\d+.*KiB\/s/)) continue;
+            if (trimmed.match(/^\s*\d+\.\d+\s*(MiB|KiB|GiB)/)) continue;
+            if (trimmed.match(/^downloading\s/i)) continue;
+            if (trimmed.match(/\[#+\-*\]+/)) continue; // progress bars like [########-------]
+            if (trimmed.match(/^\(\s*\d+\/\d+\)\s*downloading/i)) continue;
+            if (trimmed.includes(' ETA ')) continue;
+            
+            term.textContent += trimmed + '\n';
+        }
+        term.scrollTop = term.scrollHeight;
     });
 
     window.installerAPI.onInstallExit((code) => {
