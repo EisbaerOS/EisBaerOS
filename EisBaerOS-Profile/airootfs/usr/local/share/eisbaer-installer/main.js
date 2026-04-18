@@ -171,11 +171,22 @@ ipcMain.handle('start-install', async (event, config) => {
     partCmds.push("rm -f /var/lib/pacman/sync/endeavouros.* 2>/dev/null || true");
     
     // Init keyring
-    partCmds.push(`echo '▶ Step 1/4: Preparing package keyring...'`);
+    partCmds.push(`echo '▶ Step 1/5: Preparing package keyring...'`);
     partCmds.push('pacman-key --init 2>&1 | tail -1');
     partCmds.push('pacman-key --populate archlinux 2>&1 | tail -1');
     partCmds.push('pacman -Syy --noconfirm --noprogressbar archlinux-keyring > /dev/null 2>&1');
     partCmds.push(`echo '  ✓ Keyring ready'`);
+    
+    // Optimize mirrors and enable parallel downloads
+    partCmds.push(`echo ''`);
+    partCmds.push(`echo '▶ Step 2/5: Optimizing download speed...'`);
+    // Enable parallel downloads (10 streams for install speed)
+    partCmds.push(`sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf`);
+    partCmds.push(`sed -i 's/^ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf`);
+    // Find fastest mirrors with reflector (top 5, HTTPS only, sorted by speed)
+    partCmds.push(`echo '  Finding fastest mirrors...'`);
+    partCmds.push(`reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || echo '  (reflector unavailable, using default mirrors)'`);
+    partCmds.push(`echo '  ✓ Mirrors optimized (10 parallel downloads)'`);
     
     // Unmount anything on the target first (silent)
     partCmds.push(`umount -R ${mountpoint} 2>/dev/null || true`);
@@ -183,7 +194,7 @@ ipcMain.handle('start-install', async (event, config) => {
     
     // Wipe and create GPT partition table
     partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 2/4: Partitioning ${diskDevice}...'`);
+    partCmds.push(`echo '▶ Step 3/5: Partitioning ${diskDevice}...'`);
     partCmds.push(`sgdisk --zap-all ${diskDevice} > /dev/null 2>&1`);
     
     // Create partitions (suppress sgdisk chatter)
@@ -217,7 +228,7 @@ ipcMain.handle('start-install', async (event, config) => {
     
     // Format partitions
     partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 3/4: Formatting partitions...'`);
+    partCmds.push(`echo '▶ Step 4/5: Formatting partitions...'`);
     partCmds.push(`mkfs.fat -F 32 $ESP_PART > /dev/null 2>&1`);
     partCmds.push(`echo '  ✓ /boot formatted (FAT32)'`);
     
@@ -248,12 +259,13 @@ ipcMain.handle('start-install', async (event, config) => {
     partCmds.push(`echo '  ✓ All partitions mounted'`);
     
     partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 4/4: Installing EisBärOS...'`);
-    partCmds.push(`echo '  This may take 5-15 minutes depending on your internet speed.'`);
+    partCmds.push(`echo '▶ Step 5/5: Installing EisBärOS...'`);
+    partCmds.push(`echo '  Downloading and installing packages (10 parallel streams)...'`);
     partCmds.push(`echo ''`);
     
     // Run archinstall with pre_mounted_config
-    partCmds.push(`archinstall --config ${configPath} --mountpoint ${mountpoint} --debug --silent`);
+    // --no-pkg-lookups skips the slow online package validation step
+    partCmds.push(`archinstall --config ${configPath} --mountpoint ${mountpoint} --no-pkg-lookups --debug --silent`);
 
     const command = partCmds.join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);
