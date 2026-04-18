@@ -156,7 +156,7 @@ ipcMain.handle('start-install', async (event, config, diskLayout) => {
         'pacman-key --init',
         'pacman-key --populate archlinux',
         'pacman -Syy --noconfirm archlinux-keyring',
-        `archinstall --config ${configPath} --debug --silent`
+        `archinstall --config ${configPath} --debug --silent --skip-ntp`
     ].join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);
 

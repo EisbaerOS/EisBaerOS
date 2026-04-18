@@ -214,9 +214,12 @@ function buildSummary() {
         <tr><td>Username</td><td>${document.getElementById('username').value || 'eisbaer'}</td></tr>
         <tr><td>Hostname</td><td>${document.getElementById('hostname').value || 'eisbaer-pc'}</td></tr>
         <tr><td>Desktop</td><td>${uiState.desktop}</td></tr>
+        <tr><td>Kernel</td><td>${document.getElementById('kernelSelect').value}</td></tr>
         <tr><td>Target Drive</td><td>${document.getElementById('diskSelect').value}</td></tr>
         <tr><td>Filesystem</td><td>${document.getElementById('fsSelect').value}</td></tr>
         <tr><td>Bootloader</td><td>${document.getElementById('bootSelect').value}</td></tr>
+        <tr><td>Swap</td><td>${document.getElementById('swapCheck').checked ? 'Yes' : 'No'}</td></tr>
+        <tr><td>Encryption</td><td>${document.getElementById('diskEncryption').value ? 'LUKS Enabled' : 'None'}</td></tr>
     `;
 }
 
@@ -282,13 +285,24 @@ function startInstallation() {
     const fsType = document.getElementById('fsSelect').value;
     const profile = uiState.desktop !== 'minimal' ? {"type": "desktop", "custom_settings": { "desktop_environment": uiState.desktop }} : {"type": "minimal"};
     
+    const rootPwd = document.getElementById('rootPassword').value;
+    const selectedKernel = document.getElementById('kernelSelect').value;
+    
+    // Parse extra packages
+    const extraPkgs = document.getElementById('extraPackages').value;
+    let pkgList = ["firefox", "flatpak"];
+    if (extraPkgs.trim() !== '') {
+        pkgList = pkgList.concat(extraPkgs.trim().split(/\s+/));
+    }
+
     const config = {
         "bootloader": document.getElementById('bootSelect').value,
         "hostname": document.getElementById('hostname').value || 'eisbaer-pc',
         "timezone": document.getElementById('timezone').value || 'UTC',
         "audio": document.getElementById('audioSelect').value,
-        "kernels": ["linux"],
-        "packages": ["firefox", "flatpak"],
+        "kernels": [selectedKernel],
+        "packages": pkgList,
+        "swap": document.getElementById('swapCheck').checked,
         "mirror_config": {
             "mirror_regions": {
                 [document.getElementById('mirrorRegion').value || "Germany"]: []
@@ -307,30 +321,56 @@ function startInstallation() {
                 "password": document.getElementById('password').value,
                 "is_sudo": true
             }
-        ],
+        ]
     };
+    
+    if (rootPwd) {
+        config["root_password"] = rootPwd;
+    }
+
+    const encPwd = document.getElementById('diskEncryption').value;
+    if (encPwd) {
+        config["disk_encryption"] = {
+            "encryption_type": "luks",
+            "encryption_password": encPwd,
+            "partitions": ["/"]
+        };
+    }
+
+    const partitions = [
+        {
+            "mountpoint": "/boot",
+            "fs_type": "fat32",
+            "size": "512MiB",
+            "status": "create",
+            "type": "primary",
+            "flags": ["boot", "esp"]
+        }
+    ];
+
+    if (document.getElementById('swapCheck').checked) {
+        partitions.push({
+            "mountpoint": null,
+            "fs_type": "linux-swap",
+            "size": "4GiB",
+            "status": "create",
+            "type": "primary"
+        });
+    }
+
+    partitions.push({
+        "mountpoint": "/",
+        "fs_type": fsType,
+        "size": "100%",
+        "status": "create",
+        "type": "primary"
+    });
 
     const diskLayout = {
         [selectedDisk]: {
             "device": selectedDisk,
             "wipe": true,
-            "partitions": [
-                {
-                    "mountpoint": "/boot",
-                    "fs_type": "fat32",
-                    "size": { "unit": "MiB", "value": 512 },
-                    "status": "create",
-                    "type": "primary",
-                    "flags": ["boot"]
-                },
-                {
-                    "mountpoint": "/",
-                    "fs_type": fsType,
-                    "size": { "unit": "Percent", "value": 100 },
-                    "status": "create",
-                    "type": "primary"
-                }
-            ]
+            "partitions": partitions
         }
     };
 

@@ -111,6 +111,12 @@
                         <input type="checkbox" id="requirePassword" checked>
                         <label for="requirePassword">Require my password to log in (and sudo)</label>
                     </div>
+
+                    <div class="form-group" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <label>Root Password (Optional)</label>
+                        <input type="password" id="rootPassword" placeholder="Leave blank to disable root account">
+                        <p style="font-size: 12px; margin-top: 5px;">If left blank, 'sudo' is required for admin tasks.</p>
+                    </div>
                 </div>
 
                 <!-- Step 4: Network & Mirrors -->
@@ -141,16 +147,37 @@
                     <label>Desktop Environment</label>
                     <div class="list-selection" id="desktopList">
                         <div class="list-item selected" data-val="kde">KDE Plasma (EisBärOS Standard)</div>
-                        <div class="list-item" data-val="gnome">GNOME Desktop</div>
+                        <div class="list-item" data-val="gnome">GNOME</div>
+                        <div class="list-item" data-val="xfce4">XFCE (Lightweight)</div>
+                        <div class="list-item" data-val="cinnamon">Cinnamon</div>
+                        <div class="list-item" data-val="mate">MATE</div>
+                        <div class="list-item" data-val="sway">Sway (Wayland Tiling)</div>
+                        <div class="list-item" data-val="hyprland">Hyprland (Dynamic Tiling)</div>
                         <div class="list-item" data-val="minimal">Minimal (No GUI / Server)</div>
                     </div>
 
                     <div class="form-group" style="margin-top: 20px;">
+                        <label>Kernels</label>
+                        <select id="kernelSelect">
+                            <option value="linux">linux (Standard)</option>
+                            <option value="linux-lts">linux-lts (Long Term Support)</option>
+                            <option value="linux-zen">linux-zen (Desktop Optimized)</option>
+                            <option value="linux-hardened">linux-hardened (Security Focused)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label>Audio Server</label>
                         <select id="audioSelect">
                             <option value="pipewire">Pipewire (Modern)</option>
                             <option value="pulseaudio">PulseAudio (Legacy)</option>
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Additional Packages</label>
+                        <input type="text" id="extraPackages" placeholder="e.g. git htop ufw vlc">
+                        <p style="font-size: 12px; margin-top: 5px;">Space-separated package names from Arch repos.</p>
                     </div>
                 </div>
 
@@ -185,6 +212,12 @@
                     <div class="checkbox-group">
                         <input type="checkbox" id="swapCheck" checked>
                         <label for="swapCheck">Create Swap partition</label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <label>Disk Encryption (LUKS)</label>
+                        <input type="password" id="diskEncryption" placeholder="Leave blank for no encryption">
+                        <p style="font-size: 12px; margin-top: 5px;">Enter a passphrase to encrypt your root partition. Booting will require this passphrase.</p>
                     </div>
                 </div>
 
