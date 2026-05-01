@@ -155,8 +155,7 @@ ipcMain.handle('start-install', async (event, config) => {
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-    // Build partition + mount commands
-    // We partition with sgdisk, format with mkfs, mount, then call archinstall
+    // Build commands
     const partCmds = [];
     
     partCmds.push(`echo ''`);
@@ -171,7 +170,7 @@ ipcMain.handle('start-install', async (event, config) => {
     partCmds.push("rm -f /var/lib/pacman/sync/endeavouros.* 2>/dev/null || true");
     
     // Init keyring
-    partCmds.push(`echo '▶ Step 1/5: Preparing package keyring...'`);
+    partCmds.push(`echo '▶ Step 1/3: Preparing package keyring...'`);
     partCmds.push('pacman-key --init 2>&1 | tail -1');
     partCmds.push('pacman-key --populate archlinux 2>&1 | tail -1');
     partCmds.push('pacman -Syy --noconfirm --noprogressbar archlinux-keyring > /dev/null 2>&1');
@@ -179,93 +178,20 @@ ipcMain.handle('start-install', async (event, config) => {
     
     // Optimize mirrors and enable parallel downloads
     partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 2/5: Optimizing download speed...'`);
-    // Enable parallel downloads (10 streams for install speed)
+    partCmds.push(`echo '▶ Step 2/3: Optimizing download speed...'`);
     partCmds.push(`sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf`);
     partCmds.push(`sed -i 's/^ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf`);
-    // Find fastest mirrors with reflector (top 5, HTTPS only, sorted by speed)
     partCmds.push(`echo '  Finding fastest mirrors...'`);
     partCmds.push(`reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || echo '  (reflector unavailable, using default mirrors)'`);
-    partCmds.push(`echo '  ✓ Mirrors optimized (10 parallel downloads)'`);
-    
-    // Unmount anything on the target first (silent)
-    partCmds.push(`umount -R ${mountpoint} 2>/dev/null || true`);
-    partCmds.push(`swapoff ${diskDevice}* 2>/dev/null || true`);
-    
-    // Wipe and create GPT partition table
-    partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 3/5: Partitioning ${diskDevice}...'`);
-    partCmds.push(`sgdisk --zap-all ${diskDevice} > /dev/null 2>&1`);
-    
-    // Create partitions (suppress sgdisk chatter)
-    partCmds.push(`sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI" ${diskDevice} > /dev/null 2>&1`);
-    partCmds.push(`echo '  ✓ EFI partition (512 MB)'`);
-    
-    let rootPartNum = 2;
-    if (wantSwap) {
-        partCmds.push(`sgdisk -n 2:0:+4G -t 2:8200 -c 2:"Swap" ${diskDevice} > /dev/null 2>&1`);
-        partCmds.push(`echo '  ✓ Swap partition (4 GB)'`);
-        rootPartNum = 3;
-    }
-    
-    partCmds.push(`sgdisk -n ${rootPartNum}:0:0 -t ${rootPartNum}:8300 -c ${rootPartNum}:"Root" ${diskDevice} > /dev/null 2>&1`);
-    partCmds.push(`echo '  ✓ Root partition (${fsType})'`);
-    
-    // Inform kernel of partition changes (silent)
-    partCmds.push(`partprobe ${diskDevice} 2>/dev/null || true`);
-    partCmds.push(`sleep 2`);
-    
-    // Determine partition device names (handle both /dev/sdaX and /dev/nvme0n1pX naming)
-    partCmds.push(`if [[ "${diskDevice}" == *nvme* ]] || [[ "${diskDevice}" == *mmcblk* ]]; then SEP="p"; else SEP=""; fi`);
-    
-    const espPart = '${' + diskDevice.replace('/dev/', '') + '}';
-    // Use shell variable expansion for partition names
-    partCmds.push(`ESP_PART="${diskDevice}\${SEP}1"`);
-    if (wantSwap) {
-        partCmds.push(`SWAP_PART="${diskDevice}\${SEP}2"`);
-    }
-    partCmds.push(`ROOT_PART="${diskDevice}\${SEP}${rootPartNum}"`);
-    
-    // Format partitions
-    partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 4/5: Formatting partitions...'`);
-    partCmds.push(`mkfs.fat -F 32 $ESP_PART > /dev/null 2>&1`);
-    partCmds.push(`echo '  ✓ /boot formatted (FAT32)'`);
-    
-    if (wantSwap) {
-        partCmds.push(`mkswap $SWAP_PART > /dev/null 2>&1`);
-        partCmds.push(`swapon $SWAP_PART 2>/dev/null || true`);
-        partCmds.push(`echo '  ✓ Swap enabled'`);
-    }
-    
-    if (encPassword) {
-        partCmds.push(`echo '  Encrypting root partition...'`);
-        partCmds.push(`echo '${encPassword}' | cryptsetup luksFormat $ROOT_PART --batch-mode 2>&1 | tail -1`);
-        partCmds.push(`echo '${encPassword}' | cryptsetup open $ROOT_PART cryptroot`);
-        partCmds.push(`mkfs.${fsType} /dev/mapper/cryptroot > /dev/null 2>&1`);
-        partCmds.push(`echo '  ✓ Root encrypted and formatted (${fsType})'`);
-        partCmds.push(`mkdir -p ${mountpoint}`);
-        partCmds.push(`mount /dev/mapper/cryptroot ${mountpoint}`);
-    } else {
-        partCmds.push(`mkfs.${fsType} $ROOT_PART > /dev/null 2>&1`);
-        partCmds.push(`echo '  ✓ Root formatted (${fsType})'`);
-        partCmds.push(`mkdir -p ${mountpoint}`);
-        partCmds.push(`mount $ROOT_PART ${mountpoint}`);
-    }
-    
-    // Mount ESP
-    partCmds.push(`mkdir -p ${mountpoint}/boot`);
-    partCmds.push(`mount $ESP_PART ${mountpoint}/boot`);
-    partCmds.push(`echo '  ✓ All partitions mounted'`);
+    partCmds.push(`echo '  ✓ Mirrors optimized'`);
     
     partCmds.push(`echo ''`);
-    partCmds.push(`echo '▶ Step 5/5: Installing EisBärOS...'`);
-    partCmds.push(`echo '  Downloading and installing packages (10 parallel streams)...'`);
+    partCmds.push(`echo '▶ Step 3/3: Installing EisBärOS via archinstall...'`);
+    partCmds.push(`echo '  This process is fully automated. Please wait.'`);
     partCmds.push(`echo ''`);
     
-    // Run archinstall with pre_mounted_config
-    // --no-pkg-lookups skips the slow online package validation step
-    partCmds.push(`archinstall --config ${configPath} --mountpoint ${mountpoint} --no-pkg-lookups --debug --silent`);
+    // Run archinstall directly
+    partCmds.push(`archinstall --config ${configPath} --no-pkg-lookups --debug --silent`);
 
     const command = partCmds.join(' && ');
     const installProcess = spawn('pkexec', ['bash', '-c', command]);

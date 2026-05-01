@@ -295,13 +295,9 @@ function startInstallation() {
         pkgList = pkgList.concat(extraPkgs.trim().split(/\s+/));
     }
 
+    const diskEncPwd = document.getElementById('diskEncryption').value || '';
+    
     const config = {
-        // Internal fields for main.js to handle partitioning (removed before passing to archinstall)
-        "_disk_device": selectedDisk,
-        "_fs_type": fsType,
-        "_swap": document.getElementById('swapCheck').checked,
-        "_enc_password": document.getElementById('diskEncryption').value || '',
-        
         // Archinstall config fields
         "bootloader": document.getElementById('bootSelect').value,
         "hostname": document.getElementById('hostname').value || 'eisbaer-pc',
@@ -328,8 +324,26 @@ function startInstallation() {
                 "password": document.getElementById('password').value,
                 "is_sudo": true
             }
-        ]
+        ],
+        "disk_config": {
+            "config_type": "default_layout",
+            "device_modifications": [
+                {
+                    "device": selectedDisk,
+                    "wipe": true
+                }
+            ]
+        }
     };
+    
+    if (diskEncPwd) {
+        config["encryption_password"] = diskEncPwd;
+        config["disk_config"]["disk_encryption"] = {
+            "encryption_type": "luks",
+            "encryption_password": diskEncPwd,
+            "partitions": ["/"]
+        };
+    }
     
     if (rootPwd) {
         config["!root-password"] = rootPwd;
