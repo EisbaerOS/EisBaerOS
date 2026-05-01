@@ -133,27 +133,8 @@ ipcMain.handle('get-disks', async () => {
 // IPC: Start Install
 ipcMain.handle('start-install', async (event, config) => {
     const configPath = '/tmp/eisbaer_config.json';
-    const mountpoint = '/mnt/archinstall';
-
-    // Extract disk info from config and remove it (we handle partitioning ourselves)
-    const diskDevice = config._disk_device;
-    const fsType = config._fs_type || 'ext4';
-    const wantSwap = config._swap || false;
-    const encPassword = config._enc_password || '';
-    
-    // Remove our internal fields before passing to archinstall
-    delete config._disk_device;
-    delete config._fs_type;
-    delete config._swap;
-    delete config._enc_password;
-
-    // Set disk_config to pre_mounted_config pointing to our mountpoint
-    config.disk_config = {
-        "config_type": "pre_mounted_config",
-        "mountpoint": mountpoint
-    };
-
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
 
     // Build commands
     const partCmds = [];
