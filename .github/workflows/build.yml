@@ -17,6 +17,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pacman-key --init
+          pacman-key --populate archlinux
           pacman -Syu --noconfirm archiso git reflector grub mtools libisoburn
           # Enable parallel downloads for speed in CI
           sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf

@@ -43,6 +43,7 @@ intel-ucode
 irssi
 iw
 iwd
+iptables
 jfsutils
 jq
 kitty-terminfo
@@ -129,28 +130,7 @@ xfsprogs
 xl2tpd
 zsh
 
-# KDE Plasma Desktop
-plasma-desktop
-plasma-nm
-sddm
-konsole
-dolphin
-xorg-server
-xf86-video-fbdev
-noto-fonts
-ark
-kate
-firefox
-flatpak
-packagekit-qt6
-mesa
-pipewire
-pipewire-pulse
-pipewire-alsa
-wireplumber
-xdg-desktop-portal-kde
-qt6-wayland
-
-# Installer (Graphical)
-nodejs
-electron
+# Installation Tools
+archinstall
+reflector
+git

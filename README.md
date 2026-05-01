@@ -6,7 +6,7 @@
   [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
   [![Platform: Arch Linux](https://img.shields.io/badge/Platform-Arch%20Linux-1793d1.svg?logo=arch-linux&logoColor=white)](https://archlinux.org)
 
-  **A modern, reliable Arch Linux-based distribution featuring KDE Plasma and a custom graphical installer.**
+  **A modern, reliable Arch Linux-based distribution featuring a streamlined CLI installation experience.**
   
   [Official Website](https://eisbaeros.de) • [AxoDevs](https://axodevs.de)
 </div>
@@ -15,16 +15,16 @@
 
 ## 🛠️ Overview
 
-EisBärOS is designed to provide a "just works" Arch Linux experience without sacrificing the power and flexibility of the Arch ecosystem. It bridges the gap between Arch's minimalist core and a user-friendly desktop environment through a custom-built installation wizard.
+EisBärOS is designed to provide a "just works" Arch Linux experience without sacrificing the power and flexibility of the Arch ecosystem. This version features a CLI-only live environment optimized for speed and reliability, utilizing the official `archinstall` backend.
 
 ### Key Features
 
 | Feature | Description |
 | :--- | :--- |
-| **KDE Plasma** | A modern, high-performance desktop environment pre-configured for productivity. |
-| **Custom Installer** | An intuitive, Electron-based graphical wizard that simplifies system deployment. |
+| **CLI Optimized** | Lightweight live environment designed specifically for system installation. |
 | **Archinstall Core** | Leverages the official `archinstall` backend for maximum stability and compatibility. |
-| **Out-of-the-box** | Pre-configured with PipeWire, modern drivers, and custom aesthetics (Fastfetch, Wallpapers). |
+| **Custom Branding** | Pre-configured aesthetics and specialized package sets for the final installation. |
+| **Performance** | Optimized build process and live environment for the fastest deployment. |
 
 ---
 
@@ -67,8 +67,7 @@ The completed image will be available in the `out/` directory.
 │   ├── packages.x86_64         # Full package list for the ISO
 │   ├── pacman.conf             # Build-time repository configuration
 │   └── airootfs/               # Live system root filesystem
-│       ├── etc/                # Pre-configured system files
-│       └── usr/local/share/    # Custom applications (Installer, UI)
+│       └── etc/                # Pre-configured system files
 └── LOGO/                       # Branding assets and design files
 ```
 
