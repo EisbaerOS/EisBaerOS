@@ -1,3 +1,76 @@
-#!/usr/bin/env bash
-# EisBärOS Installer Wrapper
-archinstall "$@"
+#!/usr/bin/env python3
+import os
+import sys
+import json
+import subprocess
+
+def clear():
+    os.system('clear')
+
+def main():
+    clear()
+    print("══════════════════════════════════════════════")
+    print("   EisBärOS Installation Wizard")
+    print("══════════════════════════════════════════════")
+    print("\nWillkommen bei EisBärOS!")
+    print("\nWie möchtest du fortfahren?")
+    print("1) [EisBär-Modus]  Schnell & Einfach (KDE Plasma, Deutsch, Automatik)")
+    print("2) [Experten-Modus] Volle Kontrolle (Standard Archinstall)")
+    print("3) [Abbrechen]     Zurück zur Konsole")
+    
+    choice = input("\nAuswahl (1-3): ")
+
+    if choice == '1':
+        # Erstelle eine temporäre Konfiguration mit EisBär-Standards
+        eisbaer_config = {
+            "audio": "pipewire",
+            "bootloader": "grub",
+            "hostname": "eisbaeros",
+            "kernels": ["linux"],
+            "locale_config": {
+                "kb_layout": "de",
+                "sys_enc": "UTF-8",
+                "sys_lang": "de_DE"
+            },
+            "mirror_config": {
+                "mirror_regions": {"Germany": []}
+            },
+            "profile_config": {
+                "profile": {
+                    "type": "desktop",
+                    "custom_settings": {
+                        "desktop_environment": "kde"
+                    }
+                }
+            },
+            "packages": ["firefox", "flatpak", "git", "htop"],
+            "timezone": "Europe/Berlin"
+        }
+        
+        config_path = "/tmp/eisbaer_simple.json"
+        with open(config_path, "w") as f:
+            json.dump(eisbaer_config, f)
+            
+        clear()
+        print("▶ EisBär-Modus aktiviert.")
+        print("▶ Die wichtigsten Einstellungen (KDE, Deutsch, etc.) wurden vorbereitet.")
+        print("▶ Du musst jetzt nur noch die Festplatte wählen und deinen Benutzer erstellen.\n")
+        input("Drücke ENTER um zu starten...")
+        
+        # Starte archinstall mit der vorbereiteten Konfiguration
+        # Der Benutzer landet direkt im Menü, aber viele Punkte sind schon grün/fertig.
+        subprocess.run(["archinstall", "--config", config_path])
+        
+    elif choice == '2':
+        clear()
+        print("▶ Experten-Modus wird gestartet...")
+        subprocess.run(["archinstall"])
+    else:
+        print("\nAbgebrochen.")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nAbgebrochen.")
+        sys.exit(0)
