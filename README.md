@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="LOGO/logo.png" alt="EisBärOS Logo" width="200">
+  <img src="LOGO/transparent_black_notext.png" alt="EisBärOS Logo" width="200">
   <h1>EisBärOS</h1>
 
   [![Build Status](https://github.com/EisbaerOS/EisBaerOS/actions/workflows/build.yml/badge.svg)](https://github.com/EisbaerOS/EisBaerOS/actions/workflows/build.yml)
