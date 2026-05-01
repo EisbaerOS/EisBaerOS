@@ -1,48 +1,83 @@
-# 🐻‍❄️ EisBärOS
+<div align="center">
+  <img src="LOGO/logo.png" alt="EisBärOS Logo" width="200">
+  <h1>EisBärOS</h1>
 
-**EisBärOS** is an Arch Linux-based distribution featuring the KDE Plasma Desktop and a custom graphical installer.
+  [![Build Status](https://github.com/EisbaerOS/EisBaerOS/actions/workflows/build.yml/badge.svg)](https://github.com/EisbaerOS/EisBaerOS/actions/workflows/build.yml)
+  [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
+  [![Platform: Arch Linux](https://img.shields.io/badge/Platform-Arch%20Linux-1793d1.svg?logo=arch-linux&logoColor=white)](https://archlinux.org)
 
-Developed by [AxolotlDevs.de](https://axolotldevs.de) · [eisbaeros.de](https://eisbaeros.de)
+  **A modern, reliable Arch Linux-based distribution featuring KDE Plasma and a custom graphical installer.**
+  
+  [Official Website](https://eisbaeros.de) • [AxoDevs](https://axodevs.de)
+</div>
 
-## Features
+---
 
-- 🖥️ **KDE Plasma Desktop** – Modern and customizable
-- 🧊 **Custom Graphical Installer** – Ubuntu-like installation wizard (Electron-based)
-- 🔧 **Archinstall Backend** – Reliable system installation
-- 🎨 **Custom Branding** – Wallpapers, logos, Fastfetch configuration
-- 🔊 **PipeWire Audio** – Modern audio system out-of-the-box
+## 🛠️ Overview
 
-## Building the ISO
+EisBärOS is designed to provide a "just works" Arch Linux experience without sacrificing the power and flexibility of the Arch ecosystem. It bridges the gap between Arch's minimalist core and a user-friendly desktop environment through a custom-built installation wizard.
+
+### Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **KDE Plasma** | A modern, high-performance desktop environment pre-configured for productivity. |
+| **Custom Installer** | An intuitive, Electron-based graphical wizard that simplifies system deployment. |
+| **Archinstall Core** | Leverages the official `archinstall` backend for maximum stability and compatibility. |
+| **Out-of-the-box** | Pre-configured with PipeWire, modern drivers, and custom aesthetics (Fastfetch, Wallpapers). |
+
+---
+
+## 🏗️ Build System
+
+EisBärOS uses a custom build wrapper for `mkarchiso` to ensure reproducible and fast ISO generation.
 
 ### Prerequisites
 
-- Arch Linux (or an Arch-based distribution)
-- `archiso` package installed (`sudo pacman -S archiso`)
+- **Arch Linux** host system
+- **archiso** package: `sudo pacman -S archiso`
 
-### Start Build
+### Instructions
 
-```bash
-sudo ./build.sh
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/EisbaerOS/EisBaerOS.git
+   cd EisBaerOS
+   ```
+
+2. **Start the build process:**
+   ```bash
+   # Standard incremental build
+   sudo ./build.sh
+
+   # Clean build (removes cache)
+   sudo ./build.sh --clean
+   ```
+
+The completed image will be available in the `out/` directory.
+
+---
+
+## 📂 Project Structure
+
+```text
+├── build.sh                    # Optimized build wrapper script
+├── EisBaerOS-Profile/          # Official archiso profile configuration
+│   ├── profiledef.sh           # Core profile metadata
+│   ├── packages.x86_64         # Full package list for the ISO
+│   ├── pacman.conf             # Build-time repository configuration
+│   └── airootfs/               # Live system root filesystem
+│       ├── etc/                # Pre-configured system files
+│       └── usr/local/share/    # Custom applications (Installer, UI)
+└── LOGO/                       # Branding assets and design files
 ```
 
-You can find the built ISO in the `out/` directory.
+---
 
-## Project Structure
+## ⚖️ License
 
-```
-├── build.sh                    # Build script
-├── EisBaerOS-Profile/          # Archiso profile
-│   ├── profiledef.sh           # Profile definition
-│   ├── packages.x86_64         # Package list
-│   ├── pacman.conf             # Pacman configuration
-│   └── airootfs/               # Root filesystem
-│       ├── etc/                # System configuration
-│       ├── usr/local/bin/      # EisBärOS scripts
-│       └── usr/local/share/    # Installer (Electron)
-│           └── eisbaer-installer/
-└── LOGO/                       # Logo files
-```
+Distributed under the **GPL-2.0 License**. See `LICENSE` for more information.
 
-## License
-
-GPL-2.0 – See [LICENSE](LICENSE) for details.
+<div align="center">
+  <sub>Developed with ❤️ by <a href="https://axodevs.de">AxoDevs.de</a></sub>
+</div>
