@@ -26,4 +26,5 @@ file_permissions=(
   ["/usr/local/bin/eisbaeros-hard-branding.sh"]="0:0:755"
   ["/usr/local/bin/eisbaeros-mode-monitor.sh"]="0:0:755"
   ["/usr/local/bin/eisbaeros-liveuser-setup.sh"]="0:0:755"
+  ["/usr/local/bin/eisbaerinstall"]="0:0:755"
 )
